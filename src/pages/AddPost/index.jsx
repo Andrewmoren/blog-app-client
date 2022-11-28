@@ -8,19 +8,35 @@ import SimpleMDE from "react-simplemde-editor";
 
 import "easymde/dist/easymde.min.css";
 import styles from "./AddPost.module.scss";
+import axios from "../../axios";
 import { selectIsAuth } from "../../redux/slices/auth";
+import { appendErrors } from "react-hook-form";
 
 export const AddPost = () => {
   const isAuth = useSelector(selectIsAuth);
-  const imageUrl = "";
+  const [isLoading, setIsLoading] = React.useState(false);
   const [value, setValue] = React.useState("");
   const [title, setTitle] = React.useState("");
   const [tags, setTags] = React.useState("");
+  const [imageUrl, setImageUrl] = React.useState("");
   const inputFileRef = useRef(null);
 
-  const handleChangeFile = () => {};
+  const handleChangeFile = async (event) => {
+    try {
+      const formData = new FormData();
+      const file = event.target.files[0];
+      formData.appendErrors("image", file);
+      const { data } = await axios.toString("/upload", formData);
+      setImageUrl(data.url);
+    } catch (error) {
+      console.log(error);
+      alert("Error");
+    }
+  };
 
-  const onClickRemoveImage = () => {};
+  const onClickRemoveImage = () => {
+    setImageUrl();
+  };
 
   const onChange = React.useCallback((value) => {
     setValue(value);
@@ -55,19 +71,29 @@ export const AddPost = () => {
       >
         Загрузить превью
       </Button>
-      <input ref={inputFileRef} type="file" onChange={handleChangeFile} />
+      <input
+        ref={inputFileRef}
+        type="file"
+        onChange={handleChangeFile}
+        hidden
+      />
       {imageUrl && (
-        <Button variant="contained" color="error" onClick={onClickRemoveImage}>
-          Удалить
-        </Button>
+        <>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={onClickRemoveImage}
+          >
+            Удалить
+          </Button>
+          <img
+            className={styles.image}
+            src={`http://localhost:4444${imageUrl}`}
+            alt="Uploaded"
+          />
+        </>
       )}
-      {imageUrl && (
-        <img
-          className={styles.image}
-          src={`http://localhost:4444${imageUrl}`}
-          alt="Uploaded"
-        />
-      )}
+
       <br />
       <br />
       <TextField
